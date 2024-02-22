@@ -4,9 +4,9 @@ const cors = require('cors');
 const crypto = require('crypto');
 const app = express();
 const PORT = 5001;
-const REFRESH_INTERVAL = 20000;
+const REFRESH_INTERVAL = 3000;
 
-app.use(cors({exposedHeaders: ['ETag']}));
+app.use(cors({exposedHeaders: ['etag']}));
 
 app.use(express.json());
 
@@ -41,7 +41,7 @@ app.get('/api/prices', async (req, res) => {
 
     if (isDataOld) {
         try {
-            const response = await axios.get('https://api.coincap.io/v2/assets');
+            const response = await axios.get('https://api.coincap.io/v2/assets?ids=bitcoin,ethereum,litecoin,monero,xrp,dogecoin,dash');
             updateETagData(response.data.data);
         } catch (error) {
             console.log("Error: ", error);

@@ -31,15 +31,17 @@ function CoinBlock({ name, price, volume, change}) {
 function App() {
   const [prices, setPrices] = useState([]);
 
+  let eTag = '';
+
   useEffect(() => {
     const fetchPrices = () => {
-      api.get('/api/prices', { headers: {'if-none-match': localStorage.getItem('eTag') || ''} }).then(
+      api.get('/api/prices', { headers: {'if-none-match': eTag} }).then(
       response => { 
         setPrices(response.data);
         console.log("response: ", response.headers);
         const newETag = response.headers['etag'];
         if (newETag) {
-          localStorage.setItem('eTag', newETag);
+          eTag = newETag;
           console.log('newETag');
         }
       }).catch(error => {
@@ -56,15 +58,15 @@ function App() {
     const intervalId = setInterval(() => {
       fetchPrices();
       console.log("fetched again...")
-    }, 9000);
+    }, 3000);
 
     return () => clearInterval(intervalId);
   }, []);
 
-  if (prices.length == 0) {
+  if (prices.length < 1) {
     return <div>Loading...</div>
   }
-  const dataArray = prices.slice(0, 11).map(coin => ({
+  const dataArray = prices.map(coin => ({
     name: coin.name,
     price: parseFloat(coin.priceUsd).toFixed(8),
     volume: parseFloat(coin.volumeUsd24Hr).toFixed(5),
