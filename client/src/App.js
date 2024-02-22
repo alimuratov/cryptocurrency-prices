@@ -33,11 +33,22 @@ function App() {
 
   useEffect(() => {
     const fetchPrices = () => {
-      api.get('/api/prices').then(
+      api.get('/api/prices', { headers: {'if-none-match': localStorage.getItem('eTag') || ''} }).then(
       response => { 
-        setPrices(response.data.data);
-        console.log(response.data.data[0]);
-      }).catch(error => console.log("Error: ", error));
+        setPrices(response.data);
+        console.log("response: ", response.headers);
+        const newETag = response.headers['etag'];
+        if (newETag) {
+          localStorage.setItem('eTag', newETag);
+          console.log('newETag');
+        }
+      }).catch(error => {
+        if (error.response && error.response.status === 304) {
+          console.log("Not modified");
+        } else {
+          console.log("Error: ", error);
+        }
+      });
     }
     
     fetchPrices();
@@ -45,7 +56,7 @@ function App() {
     const intervalId = setInterval(() => {
       fetchPrices();
       console.log("fetched again...")
-    }, 30000000);
+    }, 9000);
 
     return () => clearInterval(intervalId);
   }, []);
