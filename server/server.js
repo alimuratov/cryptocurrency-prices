@@ -6,10 +6,12 @@ const app = express();
 const PORT = 5001;
 const REFRESH_INTERVAL = 3000;
 
+// enabling cross-origin requests and allowing client side to access the 'etag' header in the server responses
 app.use(cors({exposedHeaders: ['etag']}));
 
 app.use(express.json());
 
+// data about the last successfully fetched instance of crypto prices
 let eTagBlock = {
     eTag: "",
     data: null, 
@@ -25,6 +27,7 @@ function updateETagData(newData) {
     };
 }
 
+// generating hash that allows server to determine if the client has the old version of prices
 function generateETag(data) {
     const dataStringified = JSON.stringify(data);
     const hash = crypto.createHash('sha256').update(dataStringified).digest('hex');

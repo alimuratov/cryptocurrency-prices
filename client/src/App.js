@@ -3,9 +3,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios'
 import React, {useState, useEffect} from 'react';
 
+// explicitly setting base part of the URL for the requests made through this axios instance
 const api = axios.create({
   baseURL: 'http://localhost:5001',
 });
+
 
 function CoinBlock({ name, price, volume, change}) {
   return (
@@ -20,7 +22,7 @@ function CoinBlock({ name, price, volume, change}) {
         </div>
         <div className="col-6">
           <h6>change:</h6>
-          <p>{change}%</p>
+          <p className={parseFloat(change) > 0 ? "text-success" : "text-danger" }>{change}%</p>
         </div>
       </div>
     </div>  
@@ -29,35 +31,40 @@ function CoinBlock({ name, price, volume, change}) {
 }
 
 function App() {
+  // "prices" state variable holds data fetched from the CoinCap in the format of an array
   const [prices, setPrices] = useState([]);
 
+  // hash that uniquely identifies the last successfully fetched instance of data 
   let eTag = '';
 
+  // side effect for fetching data, runs once after the initial render 
   useEffect(() => {
     const fetchPrices = () => {
-      api.get('/api/prices', { headers: {'if-none-match': eTag} }).then(
-      response => { 
-        setPrices(response.data);
-        console.log("response: ", response.headers);
-        const newETag = response.headers['etag'];
-        if (newETag) {
-          eTag = newETag;
-          console.log('newETag');
-        }
-      }).catch(error => {
-        if (error.response && error.response.status === 304) {
-          console.log("Not modified");
-        } else {
-          console.log("Error: ", error);
-        }
-      });
-    }
+      // add eTag as a header to the request to the endpoint 
+      api.get('/api/prices', { headers: {'if-none-match': eTag} })
+         .then(response => { 
+            setPrices(response.data);
+            console.log("response: ", response.headers);
+            const newETag = response.headers['etag'];
+            if (newETag) {
+              eTag = newETag;
+              console.log('newETag');
+            }
+          })
+          .catch(error => {
+            if (error.response && error.response.status === 304) {
+              console.log("Not modified");
+            } else {
+              console.log("Error: ", error);
+            }
+          });
+    }     
     
     fetchPrices();
 
     const intervalId = setInterval(() => {
       fetchPrices();
-      console.log("fetched again...")
+      console.log("fetched again...");
     }, 3000);
 
     return () => clearInterval(intervalId);
@@ -66,6 +73,7 @@ function App() {
   if (prices.length < 1) {
     return <div>Loading...</div>
   }
+
   const dataArray = prices.map(coin => ({
     name: coin.name,
     price: parseFloat(coin.priceUsd).toFixed(8),
