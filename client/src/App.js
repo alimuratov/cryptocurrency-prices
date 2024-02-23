@@ -76,9 +76,9 @@ function App() {
 
   const dataArray = prices.map(coin => ({
     name: coin.name,
-    price: parseFloat(coin.priceUsd).toFixed(8),
-    volume: parseFloat(coin.volumeUsd24Hr).toFixed(5),
-    change: parseFloat(coin.changePercent24Hr).toFixed(8)
+    price: coin.priceUsd ? parseFloat(coin.priceUsd).toFixed(8) : '-',
+    volume: coin.volumeUsd24Hr ? parseFloat(coin.volumeUsd24Hr).toFixed(5) : '-',
+    change: coin.changePercent24Hr ? parseFloat(coin.changePercent24Hr).toFixed(8) : '-'
   }));
 
   return (
